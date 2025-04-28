@@ -186,28 +186,42 @@
     }
     function getHolidays(y) {
       const eas = getEasterDate(y);
-      const fixed = [[1,1],[5,1],[5,8],[7,14],[8,15],[11,1],[11,11],[12,25]];
-      const hols = fixed.map(([m,d])=>new Date(y,m-1,d));
-      [1,39,50].forEach(off => { const dt = new Date(eas); dt.setDate(dt.getDate()+off); hols.push(dt); });
+      const fixed = [
+        { month:1, day:1, name:"Jour de l'An" },
+        { month:5, day:1, name:"Fête du Travail" },
+        { month:5, day:8, name:"Victoire 1945" },
+        { month:7, day:14, name:"Fête nationale" },
+        { month:8, day:15, name:"Assomption" },
+        { month:11, day:1, name:"Toussaint" },
+        { month:11, day:11, name:"Armistice" },
+        { month:12, day:25, name:"Noël" }
+      ];
+      const hols = fixed.map(h => ({ date: new Date(y,h.month-1,h.day), name: h.name }));
+      const movable = [
+        { offset:1, name:"Lundi de Pâques" },
+        { offset:39, name:"Ascension" },
+        { offset:50, name:"Lundi de Pentecôte" }
+      ];
+      movable.forEach(mv => { const d = new Date(eas); d.setDate(d.getDate()+mv.offset); hols.push({ date: d, name: mv.name }); });
       return hols;
     }
     function generateCalendar(year) {
-      const tbody = document.querySelector('#calendarTable tbody'); tbody.innerHTML='';
+      const tbody = document.querySelector('#calendarTable tbody'); tbody.innerHTML = '';
       const hols = getHolidays(year);
       const map = {};
-      hols.forEach(d => { const m = d.getMonth(); if(!map[m]) map[m] = []; map[m].push(d); });
+      hols.forEach(h => { const m = h.date.getMonth(); if(!map[m]) map[m] = []; map[m].push(h); });
       window.holidayMap = map;
       let sumW=0, sumH=0, sumT=0;
       for(let m=0; m<12; m++) {
         const first = new Date(year,m,1), last = new Date(year,m+1,0);
-        let work=0, hol=0;
+        let work=0, holCount=0;
         for(let d=1; d<=last.getDate(); d++) {
           const dt = new Date(year,m,d);
-          if(map[m] && map[m].some(x=>x.getTime()===dt.getTime())) hol++;
+          if(map[m] && map[m].some(h => h.date.getTime() === dt.getTime())) holCount++;
           else if(dt.getDay()>0 && dt.getDay()<6) work++;
         }
-        sumW+=work; sumH+=hol; sumT+=last.getDate();
-        tbody.innerHTML += `<tr><td>${first.toLocaleString('fr-FR',{month:'long'})}</td><td>${work}</td><td class="hol" data-month="${m}">${hol}</td><td>${last.getDate()}</td></tr>`;
+        sumW+=work; sumH+=holCount; sumT+=last.getDate();
+        tbody.innerHTML += `<tr><td>${first.toLocaleString('fr-FR',{month:'long'})}</td><td>${work}</td><td class="hol" data-month="${m}">${holCount}</td><td>${last.getDate()}</td></tr>`;
       }
       document.getElementById('sumWork').textContent = sumW;
       document.getElementById('sumHolidays').textContent = sumH;
@@ -224,10 +238,10 @@
       const year = +document.getElementById('selectYear').value;
       container.innerHTML = '';
       document.getElementById('popupTitle').textContent = `Jours fériés - ${new Date(year,m,1).toLocaleString('fr-FR',{month:'long',year:'numeric'})}`;
-      (window.holidayMap[m]||[]).forEach(d => {
+      (window.holidayMap[m]||[]).forEach(h => {
         container.innerHTML +=
           `<div class="holiday-item"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1 0.9 2 2 2h14c1.1 0 2-0.9 2-2V6c0-1.1-0.9-2-2-2zM19 20H5V9h14v11z"/></svg>` +
-          `<div class="holiday-info"><div class="name">Jour férié</div><div class="date">${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`;
+          `<div class="holiday-info"><div class="name">${h.name}</div><div class="date">${h.date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`;
       });
       overlay.style.display = 'block';
       modal.style.display = 'block';
