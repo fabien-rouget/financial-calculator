@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculatrice financière</title>
   <style>
     /* Couleurs et variables */
@@ -17,16 +17,34 @@
       --shadow: rgba(0, 0, 0, 0.1);
       --summary-bg: #DBEAFE;
     }
+    /* Mode nuit */
+    [data-theme="dark"] {
+      --primary: #5393FF;
+      --primary-light: #7FAFFF;
+      --background: #1F2937;
+      --card-bg: #374151;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --border: #4B5563;
+      --shadow: rgba(0, 0, 0, 0.5);
+      --summary-bg: #4B5563;
+    }
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; font-family: 'Inter', sans-serif; background: var(--background); color: var(--text); }
     .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     h1 { text-align: center; font-size: 2rem; margin-bottom: 1rem; }
+    /* Bascule thème */
+    #toggleTheme { background: none; border: none; cursor: pointer; padding: 0.5rem; margin-bottom: 1rem; }
+    #iconSun, #iconMoon { width: 24px; height: 24px; stroke: var(--primary); fill: none; }
+    #iconMoon { display: none; }
+    [data-theme="dark"] #iconSun { display: none; }
+    [data-theme="dark"] #iconMoon { display: inline; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 12px var(--shadow); padding: 20px; }
     h2 { margin: 0 0 1rem; font-size: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .field { margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-    input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: #FFF; transition: border-color 0.2s; }
+    input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--card-bg); color: var(--text); transition: border-color 0.2s; }
     input:focus, select:focus { outline: none; border-color: var(--primary-light); }
     .field-group { display: flex; gap: 1rem; }
     .field-group .field { flex: 1; }
@@ -43,7 +61,7 @@
     tr.disabled td { color: var(--text-muted); font-style: italic; }
     td.hol { color: var(--primary); cursor: pointer; text-decoration: underline; }
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 10; }
-    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border-radius: 12px; box-shadow: 0 8px 24px var(--shadow); width: 360px; max-width: 90%; z-index: 11; display: none; overflow: hidden; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: var(--card-bg); border-radius: 12px; box-shadow: 0 8px 24px var(--shadow); width: 360px; max-width: 90%; z-index: 11; display: none; overflow: hidden; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); }
     .modal-header h3 { margin: 0; font-size: 1.125rem; }
     .close-btn { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted); }
@@ -57,9 +75,18 @@
 </head>
 <body>
   <div class="container">
+    <button id="toggleTheme">
+      <svg id="iconSun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 1v2 M12 21v2 M4.22 4.22l1.42 1.42 M18.36 18.36l1.42 1.42 M1 12h2 M21 12h2 M4.22 19.78l1.42-1.42 M18.36 5.64l1.42-1.42" />
+      </svg>
+      <svg id="iconMoon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+      </svg>
+    </button>
     <h1>Calculatrice financière</h1>
     <div class="grid">
-      <!-- TVA -->
+      <!-- Section TVA -->
       <div class="card" id="tva-calculatrice">
         <h2>Calculateur de TVA</h2>
         <div class="field">
@@ -73,29 +100,29 @@
         <div class="field-group">
           <div class="field">
             <label for="prixHT">Prix HT</label>
-            <input type="number" id="prixHT" step="0.01" placeholder="0,00">
+            <input type="number" id="prixHT" step="0.01" placeholder="0,00" />
             <button id="btnTTC" class="btn">Calculer TTC</button>
           </div>
           <div class="field">
             <label for="prixTTC">Prix TTC</label>
-            <input type="number" id="prixTTC" step="0.01" placeholder="0,00">
+            <input type="number" id="prixTTC" step="0.01" placeholder="0,00" />
             <button id="btnHT" class="btn">Calculer HT</button>
           </div>
         </div>
         <div id="resultTVA"></div>
       </div>
-      <!-- Impôt -->
+      <!-- Section Impôt -->
       <div class="card" id="impot-calculatrice">
         <h2>Calculateur d'impôt sur le revenu</h2>
         <div class="field">
           <label for="revenuNet">Bénéfice annuel</label>
-          <input type="number" id="revenuNet" placeholder="0,00">
+          <input type="number" id="revenuNet" placeholder="0,00" />
         </div>
         <button id="btnImpot" class="btn">Calculer l'impôt</button>
         <div id="taxResult"></div>
       </div>
     </div>
-    <!-- Calendrier -->
+    <!-- Section Calendrier -->
     <div class="card" id="calendar-calculatrice" style="margin-top:20px;">
       <h2>Jours ouvrés par mois</h2>
       <div class="field">
@@ -109,6 +136,7 @@
       </table>
     </div>
   </div>
+  <!-- Overlay & Modal -->
   <div class="overlay" id="overlay"></div>
   <div class="modal" id="holidayPopup">
     <div class="modal-header">
@@ -119,44 +147,41 @@
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bascule thème
+      document.getElementById('toggleTheme').addEventListener('click', () => {
+        const htmlEl = document.documentElement;
+        htmlEl.setAttribute('data-theme', htmlEl.getAttribute('data-theme') === 'dark' ? '' : 'dark');
+      });
+      // TVA listeners
       document.getElementById('btnTTC').addEventListener('click', calculerTTC);
       document.getElementById('btnHT').addEventListener('click', calculerHT);
+      // Impôt listener
       document.getElementById('btnImpot').addEventListener('click', calculerImpot);
+      // Popup close
       document.getElementById('btnClose').addEventListener('click', closePopup);
-
-      // Initialisation de la liste des années
+      // Init années
       const sel = document.getElementById('selectYear');
       for (let y = 2025; y <= 2030; y++) {
-        const opt = document.createElement('option');
-        opt.value = y;
-        opt.textContent = y;
-        sel.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = y; opt.textContent = y; sel.appendChild(opt);
       }
       sel.value = 2025;
       sel.addEventListener('change', () => generateCalendar(+sel.value));
       generateCalendar(2025);
     });
-
-    // Conversion TVA
     function calculerTTC() {
       const ht = parseFloat(document.getElementById('prixHT').value) || 0;
       const taux = parseFloat(document.getElementById('tauxTVA').value);
       const montantTVA = ht * taux;
       const ttc = ht + montantTVA;
-      document.getElementById('resultTVA').innerHTML =
-        `<div class="summary"><p>TTC : <strong>${ttc.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+      document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>TTC : <strong>${ttc.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
     }
-
     function calculerHT() {
       const ttc = parseFloat(document.getElementById('prixTTC').value) || 0;
       const taux = parseFloat(document.getElementById('tauxTVA').value);
       const montantTVA = ttc * taux;
       const ht = ttc - montantTVA;
-      document.getElementById('resultTVA').innerHTML =
-        `<div class="summary"><p>HT : <strong>${ht.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+      document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>HT : <strong>${ht.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
     }
-
-    // Calcul impôt
     const tranches = [
       { limite: 11497, taux: 0 },
       { limite: 29315, taux: 0.11 },
@@ -172,26 +197,24 @@
         const base = Math.max(0, Math.min(revenu - prev, t.limite - prev));
         const imp = base * t.taux;
         totalImp += imp;
-        html += `<tr class="${base <= 0 ? 'disabled' : ''}"><td>${prev.toLocaleString('fr-FR')} - ${t.limite === Infinity ? '+' : t.limite.toLocaleString('fr-FR')}</td><td>${base.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td><td>${(t.taux*100).toFixed(0)} %</td><td>${imp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td></tr>`;
+        html += `<tr class="${base <= 0 ? 'disabled' : ''}"><td>${prev.toLocaleString('fr-FR')} - ${t.limite===Infinity ? '+' : t.limite.toLocaleString('fr-FR')}</td><td>${base.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td><td>${(t.taux*100).toFixed(0)} %</td><td>${imp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td></tr>`;
         prev = t.limite;
       });
       html += `</tbody></table>`;
       const mens = totalImp / 12;
       const rest = revenu - totalImp;
       const restM = rest / 12;
-      document.getElementById('taxResult').innerHTML = html +
-        `<div class="summary"><p>Impôt annuel : <strong>${totalImp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Impôt mensuel : <strong>${mens.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant annuel : <strong>${rest.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant mensuel : <strong>${restM.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+      document.getElementById('taxResult').innerHTML = html + `<div class="summary"><p>Impôt annuel : <strong>${totalImp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Impôt mensuel : <strong>${mens.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant annuel : <strong>${rest.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant mensuel : <strong>${restM.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
     }
-
-    // Jours fériés
     function getEasterDate(y) {
       const a = y % 19, b = Math.floor(y/100), c = y % 100, d = Math.floor(b/4), e = b % 4;
       const f = Math.floor((b+8)/25), g = Math.floor((b-f+1)/3);
-      const h = (19*a+b-d-g+15)%30, i = Math.floor(c/4), k = c % 4;
-      const l = (32+2*e+2*i-h-k)%7;
-      const m = Math.floor((a+11*h+22*l)/451);
-      const month = Math.floor((h+l-7*m+114)/31);
-      const day = ((h+l-7*m+114)%31)+1;
+      const h = (19*a + b - d - g + 15) % 30,
+            i = Math.floor(c/4), k = c % 4;
+      const l = (32 + 2*e + 2*i - h - k) % 7;
+      const m = Math.floor((a + 11*h + 22*l) / 451);
+      const month = Math.floor((h + l - 7*m + 114) / 31);
+      const day = ((h + l - 7*m + 114) % 31) + 1;
       return new Date(y, month-1, day);
     }
     function getHolidays(y) {
@@ -212,32 +235,44 @@
         { offset:39, name:"Ascension" },
         { offset:50, name:"Lundi de Pentecôte" }
       ];
-      movable.forEach(mv => { const d = new Date(eas); d.setDate(d.getDate()+mv.offset); hols.push({ date: d, name: mv.name }); });
+      movable.forEach(mov => {
+        const d = new Date(eas);
+        d.setDate(d.getDate() + mov.offset);
+        hols.push({ date: d, name: mov.name });
+      });
       return hols;
     }
     function generateCalendar(year) {
-      const tbody = document.querySelector('#calendarTable tbody'); tbody.innerHTML = '';
+      const tbody = document.querySelector('#calendarTable tbody');
+      tbody.innerHTML = '';
       const hols = getHolidays(year);
       const map = {};
-      hols.forEach(h => { const m = h.date.getMonth(); if(!map[m]) map[m] = []; map[m].push(h); });
+      hols.forEach(h => {
+        const m = h.date.getMonth();
+        if (!map[m]) map[m] = [];
+        map[m].push(h);
+      });
       window.holidayMap = map;
       let sumW=0, sumH=0, sumT=0;
-      for(let m=0; m<12; m++) {
-        const first = new Date(year,m,1), last = new Date(year,m+1,0);
+      for (let m=0; m<12; m++) {
+        const first = new Date(year, m, 1);
+        const last = new Date(year, m+1, 0);
         let work=0, holCount=0;
-        for(let d=1; d<=last.getDate(); d++) {
-          const dt = new Date(year,m,d);
-          if(map[m] && map[m].some(h => h.date.getTime()===dt.getTime())) holCount++;
-          else if(dt.getDay()>0 && dt.getDay()<6) work++;
+        for (let d=1; d<=last.getDate(); d++) {
+          const dt = new Date(year, m, d);
+          if (map[m] && map[m].some(h=>h.date.getTime()===dt.getTime())) holCount++;
+          else if (dt.getDay()>0 && dt.getDay()<6) work++;
         }
-        sumW += work; sumH += holCount; sumT += last.getDate();
+        sumW += work;
+        sumH += holCount;
+        sumT += last.getDate();
         tbody.innerHTML += `<tr><td>${first.toLocaleString('fr-FR',{month:'long'})}</td><td>${work}</td><td class="hol" data-month="${m}">${holCount}</td><td>${last.getDate()}</td></tr>`;
       }
       document.getElementById('sumWork').textContent = sumW;
       document.getElementById('sumHolidays').textContent = sumH;
       document.getElementById('sumTotal').textContent = sumT;
       document.querySelectorAll('td.hol').forEach(cell => {
-        const m = parseInt(cell.getAttribute('data-month'),10);
+        const m = parseInt(cell.getAttribute('data-month'), 10);
         cell.addEventListener('click', () => showHolidays(m));
       });
     }
@@ -247,7 +282,7 @@
       const container = document.getElementById('holidayListContainer');
       const year = +document.getElementById('selectYear').value;
       container.innerHTML = '';
-      document.getElementById('popupTitle').textContent = `Jours fériés - ${new Date(year,m,1).toLocaleString('fr-FR',{month:'long',year:'numeric'})}`;
+      document.getElementById('popupTitle').textContent = `Jours fériés - ${new Date(year, m, 1).toLocaleString('fr-FR',{month:'long',year:'numeric'})}`;
       (window.holidayMap[m]||[]).forEach(h => {
         container.innerHTML += `<div class="holiday-item"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1 0.9 2 2 2h14c1.1 0 2-0.9 2-2V6c0-1.1-0.9-2-2-2zM19 20H5V9h14v11z"/></svg><div class="holiday-info"><div class="name">${h.name}</div><div class="date">${h.date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`;
       });
