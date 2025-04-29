@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -86,7 +86,7 @@
     </button>
     <h1>Calculatrice financière</h1>
     <div class="grid">
-      <!-- Section TVA -->
+      <!-- TVA -->
       <div class="card" id="tva-calculatrice">
         <h2>Calculateur de TVA</h2>
         <div class="field">
@@ -111,7 +111,7 @@
         </div>
         <div id="resultTVA"></div>
       </div>
-      <!-- Section Impôt -->
+      <!-- Impôt -->
       <div class="card" id="impot-calculatrice">
         <h2>Calculateur d'impôt sur le revenu</h2>
         <div class="field">
@@ -122,7 +122,7 @@
         <div id="taxResult"></div>
       </div>
     </div>
-    <!-- Section Calendrier -->
+    <!-- Calendrier -->
     <div class="card" id="calendar-calculatrice" style="margin-top:20px;">
       <h2>Jours ouvrés par mois</h2>
       <div class="field">
@@ -152,7 +152,7 @@
         const htmlEl = document.documentElement;
         htmlEl.setAttribute('data-theme', htmlEl.getAttribute('data-theme') === 'dark' ? '' : 'dark');
       });
-      // Vider la saisie au focus
+      // Vider saisies au focus
       document.querySelectorAll('input').forEach(input => {
         input.addEventListener('focus', () => { input.value = ''; });
       });
@@ -161,9 +161,9 @@
       document.getElementById('btnHT').addEventListener('click', calculerHT);
       // Impôt listener
       document.getElementById('btnImpot').addEventListener('click', calculerImpot);
-      // Popup close
+      // Fermer popup
       document.getElementById('btnClose').addEventListener('click', closePopup);
-      // Init années
+      // Initialisation années
       const sel = document.getElementById('selectYear');
       for (let y = 2025; y <= 2030; y++) {
         const opt = document.createElement('option'); opt.value = y; opt.textContent = y; sel.appendChild(opt);
@@ -172,19 +172,80 @@
       sel.addEventListener('change', () => generateCalendar(+sel.value));
       generateCalendar(2025);
     });
-    function calculerTTC() { const ht = parseFloat(document.getElementById('prixHT').value) || 0; const taux = parseFloat(document.getElementById('tauxTVA').value); const montantTVA = ht * taux; const ttc = ht + montantTVA; document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>TTC : <strong>${ttc.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`; }
-    function calculerHT() { const ttc = parseFloat(document.getElementById('prixTTC').value) || 0; const taux = parseFloat(document.getElementById('tauxTVA').value); const montantTVA = ttc * taux; const ht = ttc - montantTVA; document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>HT : <strong>${ht.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`; }
+    function calculerTTC() {
+      const ht = parseFloat(document.getElementById('prixHT').value) || 0;
+      const taux = parseFloat(document.getElementById('tauxTVA').value);
+      const montantTVA = ht * taux;
+      const ttc = ht + montantTVA;
+      document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>TTC : <strong>${ttc.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+    }
+    function calculerHT() {
+      const ttc = parseFloat(document.getElementById('prixTTC').value) || 0;
+      const taux = parseFloat(document.getElementById('tauxTVA').value);
+      let ht = ttc / (1 + taux);
+      ht = Math.round(ht * 100) / 100;
+      const montantTVA = ttc - ht;
+      document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>HT : <strong>${ht.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+    }
     const tranches = [ { limite:11497,taux:0}, { limite:29315,taux:0.11}, { limite:83823,taux:0.30}, { limite:180294,taux:0.41}, { limite:Infinity,taux:0.45} ];
     function calculerImpot() {
-      const revenu = parseFloat(document.getElementById('revenuNet').value) || 0; let prev = 0, totalImp = 0; let html = `<table><thead><tr><th>Tranche</th><th>Montant</th><th>Taux</th><th>Impôt</th></tr></thead><tbody>`;
-      tranches.forEach(t => { const base = Math.max(0,Math.min(revenu-prev,t.limite-prev)); const imp = base*t.taux; totalImp+=imp; html+=`<tr class="${base<=0?'disabled':''}"><td>${prev.toLocaleString('fr-FR')} - ${t.limite===Infinity?'+':t.limite.toLocaleString('fr-FR')}</td><td>${base.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td><td>${(t.taux*100).toFixed(0)} %</td><td>${imp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td></tr>`; prev=t.limite; });
-      html+=`</tbody></table>`; const mens=totalImp/12, rest=revenu-totalImp, restM=rest/12;
-      document.getElementById('taxResult').innerHTML=html+`<div class="summary"><p>Impôt annuel : <strong>${totalImp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Impôt mensuel : <strong>${mens.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant annuel : <strong>${rest.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant mensuel : <strong>${restM.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
+      const revenu = parseFloat(document.getElementById('revenuNet').value) || 0;
+      let prev = 0, totalImp = 0;
+      let html = `<table><thead><tr><th>Tranche</th><th>Montant</th><th>Taux</th><th>Impôt</th></tr></thead><tbody>`;
+      tranches.forEach(t => {
+        const base = Math.max(0,Math.min(revenu-prev,t.limite-prev));
+        const imp = base*t.taux;
+        totalImp += imp;
+        html += `<tr class="${base<=0?'disabled':''}"><td>${prev.toLocaleString('fr-FR')} - ${t.limite===Infinity?'+':t.limite.toLocaleString('fr-FR')}</td><td>${base.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td><td>${(t.taux*100).toFixed(0)} %</td><td>${imp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</td></tr>`;
+        prev = t.limite;
+      });
+      html += `</tbody></table>`;
+      const mens = totalImp/12, rest = revenu-totalImp, restM = rest/12;
+      document.getElementById('taxResult').innerHTML = html + `<div class="summary"><p>Impôt annuel : <strong>${totalImp.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Impôt mensuel : <strong>${mens.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant annuel : <strong>${rest.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>Restant mensuel : <strong>${restM.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
     }
-    function getEasterDate(y) { const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4; const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3); const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4; const l=(32+2*e+2*i-h-k)%7; const m=Math.floor((a+11*h+22*l)/451); const month=Math.floor((h+l-7*m+114)/31); const day=((h+l-7*m+114)%31)+1; return new Date(y,month-1,day); }
-    function getHolidays(y) { const eas=getEasterDate(y); const fixed=[{month:1,day:1,name:"Jour de l'An"},{month:5,day:1,name:"Fête du Travail"},{month:5,day:8,name:"Victoire 1945"},{month:7,day:14,name:"Fête nationale"},{month:8,day:15,name:"Assomption"},{month:11,day:1,name:"Toussaint"},{month:11,day:11,name:"Armistice"},{month:12,day:25,name:"Noël"}]; const hols=fixed.map(h=>({date:new Date(y,h.month-1,h.day),name:h.name}));[{offset:1,name:"Lundi de Pâques"},{offset:39,name:"Ascension"},{offset:50,name:"Lundi de Pentecôte"}].forEach(m=>{const d=new Date(eas);d.setDate(d.getDate()+m.offset);hols.push({date:d,name:m.name});});return hols; }
-    function generateCalendar(year) { const tbody=document.querySelector('#calendarTable tbody'); tbody.innerHTML=''; const hols=getHolidays(year),map={}; hols.forEach(h=>{const m=h.date.getMonth(); if(!map[m])map[m]=[]; map[m].push(h);} ); window.holidayMap=map; let sumW=0,sumH=0,sumT=0; for(let m=0;m<12;m++){const first=new Date(year,m,1),last=new Date(year,m+1,0);let work=0,holCount=0; for(let d=1;d<=last.getDate();d++){const dt=new Date(year,m,d); if(map[m]&&map[m].some(h=>h.date.getTime()===dt.getTime()))holCount++; else if(dt.getDay()>0&&dt.getDay()<6)work++;} sumW+=work; sumH+=holCount; sumT+=last.getDate(); tbody.innerHTML+=`<tr><td>${first.toLocaleString('fr-FR',{month:'long'})}</td><td>${work}</td><td class="hol" data-month="${m}">${holCount}</td><td>${last.getDate()}</td></tr>`;} document.getElementById('sumWork').textContent=sumW; document.getElementById('sumHolidays').textContent=sumH; document.getElementById('sumTotal').textContent=sumT; document.querySelectorAll('td.hol').forEach(cell=>{const m=parseInt(cell.getAttribute('data-month'),10);cell.addEventListener('click',()=>showHolidays(m));}); }
-    function showHolidays(m) { const overlay=document.getElementById('overlay'),modal=document.getElementById('holidayPopup'),container=document.getElementById('holidayListContainer'),year=+document.getElementById('selectYear').value; container.innerHTML=''; document.getElementById('popupTitle').textContent=`Jours fériés - ${new Date(year,m,1).toLocaleString('fr-FR',{month:'long',year:'numeric'})}`; (window.holidayMap[m]||[]).forEach(h=>{container.innerHTML+=`<div class="holiday-item"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1 0.9 2 2 2h14c1.1 0 2-0.9 2-2V6c0-1.1-0.9-2-2-2zM19 20H5V9h14v11z"/></svg><div class="holiday-info"><div class="name">${h.name}</div><div class="date">${h.date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`;}); overlay.style.display='block'; modal.style.display='block'; }
+    function getEasterDate(y) {
+      const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4;
+      const f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
+      const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4;
+      const l=(32+2*e+2*i-h-k)%7;
+      const m=Math.floor((a+11*h+22*l)/451);
+      const month=Math.floor((h+l-7*m+114)/31);
+      const day=((h+l-7*m+114)%31)+1;
+      return new Date(y,month-1,day);
+    }
+    function getHolidays(y) {
+      const eas = getEasterDate(y);
+      const fixed = [
+        {month:1,day:1,name:"Jour de l'An"},{month:5,day:1,name:"Fête du Travail"},{month:5,day:8,name:"Victoire 1945"},
+        {month:7,day:14,name:"Fête nationale"},{month:8,day:15,name:"Assomption"},{month:11,day:1,name:"Toussaint"},
+        {month:11,day:11,name:"Armistice"},{month:12,day:25,name:"Noël"}
+      ];
+      const hols = fixed.map(h=>({date:new Date(y,h.month-1,h.day),name:h.name}));
+      [{offset:1,name:"Lundi de Pâques"},{offset:39,name:"Ascension"},{offset:50,name:"Lundi de Pentecôte"}].forEach(m=>{const d=new Date(eas);d.setDate(d.getDate()+m.offset);hols.push({date:d,name:m.name});});
+      return hols;
+    }
+    function generateCalendar(year) {
+      const tbody=document.querySelector('#calendarTable tbody'); tbody.innerHTML='';
+      const hols=getHolidays(year), map={}; hols.forEach(h=>{const m=h.date.getMonth(); if(!map[m])map[m]=[]; map[m].push(h);} ); window.holidayMap=map;
+      let sumW=0,sumH=0,sumT=0;
+      for(let m=0;m<12;m++){ const first=new Date(year,m,1),last=new Date(year,m+1,0); let work=0,holCount=0;
+        for(let d=1;d<=last.getDate();d++){ const dt=new Date(year,m,d);
+          if(map[m]&&map[m].some(h=>h.date.getTime()===dt.getTime())) holCount++; else if(dt.getDay()>0&&dt.getDay()<6) work++; }
+        sumW+=work; sumH+=holCount; sumT+=last.getDate();
+        tbody.innerHTML+=`<tr><td>${first.toLocaleString('fr-FR',{month:'long'})}</td><td>${work}</td><td class="hol" data-month="${m}">${holCount}</td><td>${last.getDate()}</td></tr>`;
+      }
+      document.getElementById('sumWork').textContent=sumW;
+      document.getElementById('sumHolidays').textContent=sumH;
+      document.getElementById('sumTotal').textContent=sumT;
+      document.querySelectorAll('td.hol').forEach(cell=>{ const m=parseInt(cell.getAttribute('data-month'),10); cell.addEventListener('click',()=>showHolidays(m)); });
+    }
+    function showHolidays(m) {
+      const overlay=document.getElementById('overlay'),modal=document.getElementById('holidayPopup'),container=document.getElementById('holidayListContainer'),year=+document.getElementById('selectYear').value;
+      container.innerHTML='';
+      document.getElementById('popupTitle').textContent=`Jours fériés - ${new Date(year,m,1).toLocaleString('fr-FR',{month:'long',year:'numeric'})}`;
+      (window.holidayMap[m]||[]).forEach(h=>{ container.innerHTML+=`<div class="holiday-item"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1 0.9 2 2 2h14c1.1 0 2-0.9 2-2V6c0-1.1-0.9-2-2-2zM19 20H5V9h14v11z"/></svg><div class="holiday-info"><div class="name">${h.name}</div><div class="date">${h.date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`; });
+      overlay.style.display='block'; modal.style.display='block';
+    }
     function closePopup() { document.getElementById('overlay').style.display='none'; document.getElementById('holidayPopup').style.display='none'; }
   </script>
 </body>
