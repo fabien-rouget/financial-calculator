@@ -165,12 +165,12 @@
       document.getElementById('btnClose').addEventListener('click', closePopup);
       // Initialisation années
       const sel = document.getElementById('selectYear');
-      for (let y = 2025; y <= 2030; y++) {
+      for (let y = 2026; y <= 2030; y++) {
         const opt = document.createElement('option'); opt.value = y; opt.textContent = y; sel.appendChild(opt);
       }
-      sel.value = 2025;
+      sel.value = 2026;
       sel.addEventListener('change', () => generateCalendar(+sel.value));
-      generateCalendar(2025);
+      generateCalendar(2026);
     });
     function calculerTTC() {
       const ht = parseFloat(document.getElementById('prixHT').value) || 0;
@@ -187,7 +187,7 @@
       const montantTVA = ttc - ht;
       document.getElementById('resultTVA').innerHTML = `<div class="summary"><p>HT : <strong>${ht.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p><p>TVA : <strong>${montantTVA.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></p></div>`;
     }
-    const tranches = [ { limite:11497,taux:0}, { limite:29315,taux:0.11}, { limite:83823,taux:0.30}, { limite:180294,taux:0.41}, { limite:Infinity,taux:0.45} ];
+    const tranches = [ { limite:11600,taux:0}, { limite:29579,taux:0.11}, { limite:84577,taux:0.30}, { limite:181917,taux:0.41}, { limite:Infinity,taux:0.45} ];
     function calculerImpot() {
       const revenu = parseFloat(document.getElementById('revenuNet').value) || 0;
       let prev = 0, totalImp = 0;
